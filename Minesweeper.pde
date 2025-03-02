@@ -1,108 +1,173 @@
 import de.bezier.guido.*;
-//Declare and initialize constants NUM_ROWS and NUM_COLS = 20
-private MSButton[][] buttons; //2d array of minesweeper buttons
-private ArrayList <MSButton> mines; //ArrayList of just the minesweeper buttons that are mined
 
-void setup ()
-{
-    size(400, 400);
-    textAlign(CENTER,CENTER);
-    
-    // make the manager
-    Interactive.make( this );
-    
-    //your code to initialize buttons goes here
-    
-    
-    
-    setMines();
-}
-public void setMines()
-{
-    //your code
+public static final int NUM_ROWS = 5;
+public static final int NUM_COLS = 5;
+public static final int TOTAL_MINES = 1;
+
+private MSButton[][] buttons;
+private ArrayList<MSButton> mines;
+
+void setup() {
+  size(400, 400);
+  textAlign(CENTER, CENTER);
+  Interactive.make(this);
+  buttons = new MSButton[NUM_ROWS][NUM_COLS];
+  mines = new ArrayList<MSButton>();
+  float buttonWidth = width / (float) NUM_COLS;
+  float buttonHeight = height / (float) NUM_ROWS;
+  for (int row = 0; row < NUM_ROWS; row++) {
+    for (int col = 0; col < NUM_COLS; col++) {
+      buttons[row][col] = new MSButton(row, col, buttonWidth, buttonHeight);
+    }
+  }
+  setMines();
 }
 
-public void draw ()
-{
-    background( 0 );
-    if(isWon() == true)
-        displayWinningMessage();
-}
-public boolean isWon()
-{
-    //your code here
-    return false;
-}
-public void displayLosingMessage()
-{
-    //your code here
-}
-public void displayWinningMessage()
-{
-    //your code here
-}
-public boolean isValid(int r, int c)
-{
-    //your code here
-    return false;
-}
-public int countMines(int row, int col)
-{
-    int numMines = 0;
-    //your code here
-    return numMines;
-}
-public class MSButton
-{
-    private int myRow, myCol;
-    private float x,y, width, height;
-    private boolean clicked, flagged;
-    private String myLabel;
-    
-    public MSButton ( int row, int col )
-    {
-        // width = 400/NUM_COLS;
-        // height = 400/NUM_ROWS;
-        myRow = row;
-        myCol = col; 
-        x = myCol*width;
-        y = myRow*height;
-        myLabel = "";
-        flagged = clicked = false;
-        Interactive.add( this ); // register it with the manager
+void draw() {
+  background(0);
+  for (int row = 0; row < NUM_ROWS; row++) {
+    for (int col = 0; col < NUM_COLS; col++) {
+      buttons[row][col].draw();
     }
+  }
+  if (isWon()) {
+    win();
+  }
+}
 
-    // called by manager
-    public void mousePressed () 
-    {
-        clicked = true;
-        //your code here
+public void setMines() {
+  int placedMines = 0;
+  while (placedMines < TOTAL_MINES) {
+    int randRow = (int) (Math.random() * NUM_ROWS);
+    int randCol = (int) (Math.random() * NUM_COLS);
+    MSButton candidate = buttons[randRow][randCol];
+    if (!mines.contains(candidate)) {
+      mines.add(candidate);
+      candidate.hasMine = true;
+      placedMines++;
     }
-    public void draw () 
-    {    
-        if (flagged)
-            fill(0);
-        // else if( clicked && mines.contains(this) ) 
-        //     fill(255,0,0);
-        else if(clicked)
-            fill( 200 );
-        else 
-            fill( 100 );
+  }
+}
 
-        rect(x, y, width, height);
-        fill(0);
-        text(myLabel,x+width/2,y+height/2);
+public boolean isWon() {
+  for (int row = 0; row < NUM_ROWS; row++) {
+    for (int col = 0; col < NUM_COLS; col++) {
+      MSButton b = buttons[row][col];
+      if (!b.hasMine && !b.clicked)
+        return false;
     }
-    public void setLabel(String newLabel)
-    {
-        myLabel = newLabel;
+  }
+  return true;
+}
+
+public void loss() {
+  for (MSButton m : mines) {
+    m.clicked = true;
+    m.setLabel("M");
+  }
+  println("You lose");
+  noLoop();
+}
+
+public void win() {
+  println("You won");
+  noLoop();
+}
+
+public boolean isValid(int r, int c) {
+  return r >= 0 && r < NUM_ROWS && c >= 0 && c < NUM_COLS;
+}
+
+public int countMines(int row, int col) {
+  int numMines = 0;
+  for (int r = row - 1; r <= row + 1; r++) {
+    for (int c = col - 1; c <= col + 1; c++) {
+      if (isValid(r, c) && !(r == row && c == col)) {
+        if (buttons[r][c].hasMine)
+          numMines++;
+      }
     }
-    public void setLabel(int newLabel)
-    {
-        myLabel = ""+ newLabel;
+  }
+  return numMines;
+}
+
+public class MSButton {
+  private int myRow, myCol;
+  private float x, y, width, height;
+  public boolean clicked, flagged;
+  private String myLabel;
+  public boolean hasMine;
+  
+  public MSButton(int row, int col, float w, float h) {
+    myRow = row;
+    myCol = col;
+    width = w;
+    height = h;
+    x = myCol * width;
+    y = myRow * height;
+    myLabel = "";
+    clicked = false;
+    flagged = false;
+    hasMine = false;
+    Interactive.add(this);
+  }
+  
+  public void mousePressed() {
+    if (clicked)
+      return;
+    if (mouseButton == RIGHT) {
+      flagged = !flagged;
+      if (!flagged)
+        clicked = false;
+      return;
     }
-    public boolean isFlagged()
-    {
-        return flagged;
+    if (flagged)
+      return;
+    clicked = true;
+    if (hasMine) {
+      loss();
+      return;
     }
+    int count = countMines(myRow, myCol);
+    if (count > 0) {
+      setLabel(count);
+    } else {
+      setLabel("");
+      for (int r = myRow - 1; r <= myRow + 1; r++) {
+        for (int c = myCol - 1; c <= myCol + 1; c++) {
+          if (isValid(r, c) && !(r == myRow && c == myCol)) {
+            MSButton neighbor = buttons[r][c];
+            if (!neighbor.clicked && !neighbor.flagged)
+              neighbor.mousePressed();
+          }
+        }
+      }
+    }
+  }
+  
+  public void draw() {
+    if (flagged)
+      fill(50);
+    else if (clicked && hasMine)
+      fill(255, 0, 0);
+    else if (clicked)
+      fill(200);
+    else
+      fill(100);
+    rect(x, y, width, height);
+    fill(0);
+    text(myLabel, x + width / 2, y + height / 2);
+  }
+  
+  public void setLabel(String newLabel) {
+    myLabel = newLabel;
+  }
+  
+  public void setLabel(int newLabel) {
+    myLabel = "" + newLabel;
+  }
+  
+  public boolean isFlagged() {
+    return flagged;
+  }
 }
