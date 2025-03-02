@@ -1,8 +1,8 @@
 import de.bezier.guido.*;
 
-public static final int NUM_ROWS = 5;
-public static final int NUM_COLS = 5;
-public static final int TOTAL_MINES = 1;
+public static final int NUM_ROWS = 20;
+public static final int NUM_COLS = 20;
+public static final int TOTAL_MINES = 15;
 
 private MSButton[][] buttons;
 private ArrayList<MSButton> mines;
