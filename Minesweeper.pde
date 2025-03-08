@@ -13,8 +13,8 @@ void setup() {
   Interactive.make(this);
   buttons = new MSButton[NUM_ROWS][NUM_COLS];
   mines = new ArrayList<MSButton>();
-  float buttonWidth = width / (float) NUM_COLS;
-  float buttonHeight = height / (float) NUM_ROWS;
+  int buttonWidth = width / NUM_COLS;
+  int buttonHeight = height / NUM_ROWS;
   for (int row = 0; row < NUM_ROWS; row++) {
     for (int col = 0; col < NUM_COLS; col++) {
       buttons[row][col] = new MSButton(row, col, buttonWidth, buttonHeight);
@@ -35,11 +35,22 @@ void draw() {
   }
 }
 
+void mousePressed() {
+  for (int row = 0; row < NUM_ROWS; row++) {
+    for (int col = 0; col < NUM_COLS; col++) {
+      if (buttons[row][col].contains(mouseX, mouseY)) {
+        buttons[row][col].mousePressed();
+        return;
+      }
+    }
+  }
+}
+
 public void setMines() {
   int placedMines = 0;
   while (placedMines < TOTAL_MINES) {
-    int randRow = (int) (Math.random() * NUM_ROWS);
-    int randCol = (int) (Math.random() * NUM_COLS);
+    int randRow = (int)(Math.random() * NUM_ROWS);
+    int randCol = (int)(Math.random() * NUM_COLS);
     MSButton candidate = buttons[randRow][randCol];
     if (!mines.contains(candidate)) {
       mines.add(candidate);
@@ -65,12 +76,10 @@ public void loss() {
     m.clicked = true;
     m.setLabel("M");
   }
-  println("You lose");
   noLoop();
 }
 
 public void win() {
-  println("You won");
   noLoop();
 }
 
@@ -93,23 +102,27 @@ public int countMines(int row, int col) {
 
 public class MSButton {
   private int myRow, myCol;
-  private float x, y, width, height;
+  private int x, y, w, h;
   public boolean clicked, flagged;
   private String myLabel;
   public boolean hasMine;
   
-  public MSButton(int row, int col, float w, float h) {
+  public MSButton(int row, int col, int w, int h) {
     myRow = row;
     myCol = col;
-    width = w;
-    height = h;
-    x = myCol * width;
-    y = myRow * height;
+    this.w = w;
+    this.h = h;
+    x = myCol * w;
+    y = myRow * h;
     myLabel = "";
     clicked = false;
     flagged = false;
     hasMine = false;
     Interactive.add(this);
+  }
+  
+  public boolean contains(int mx, int my) {
+    return mx >= x && mx <= x + w && my >= y && my <= y + h;
   }
   
   public void mousePressed() {
@@ -154,9 +167,9 @@ public class MSButton {
       fill(200);
     else
       fill(100);
-    rect(x, y, width, height);
+    rect(x, y, w, h);
     fill(0);
-    text(myLabel, x + width / 2, y + height / 2);
+    text(myLabel, x + w/2, y + h/2);
   }
   
   public void setLabel(String newLabel) {
