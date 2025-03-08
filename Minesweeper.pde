@@ -108,7 +108,6 @@ public class MSButton {
     Interactive.add(this);
   }
   
-  // Guido requires isInside(float, float) to detect clicks on this object.
   public boolean isInside(float mx, float my) {
     return mx >= x && mx <= x + w && my >= y && my <= y + h;
   }
