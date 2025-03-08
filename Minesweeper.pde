@@ -64,11 +64,10 @@ public void loss() {
     m.clicked = true;
     m.setLabel("M");
   }
-  noLoop();
-}
+  }
 
 public void win() {
-  noLoop();
+  
 }
 
 public boolean isValid(int r, int c) {
