@@ -35,17 +35,6 @@ void draw() {
   }
 }
 
-void mousePressed() {
-  for (int row = 0; row < NUM_ROWS; row++) {
-    for (int col = 0; col < NUM_COLS; col++) {
-      if (buttons[row][col].contains(mouseX, mouseY)) {
-        buttons[row][col].mousePressed();
-        return;
-      }
-    }
-  }
-}
-
 public void setMines() {
   int placedMines = 0;
   while (placedMines < TOTAL_MINES) {
@@ -64,8 +53,7 @@ public boolean isWon() {
   for (int row = 0; row < NUM_ROWS; row++) {
     for (int col = 0; col < NUM_COLS; col++) {
       MSButton b = buttons[row][col];
-      if (!b.hasMine && !b.clicked)
-        return false;
+      if (!b.hasMine && !b.clicked) return false;
     }
   }
   return true;
@@ -92,8 +80,7 @@ public int countMines(int row, int col) {
   for (int r = row - 1; r <= row + 1; r++) {
     for (int c = col - 1; c <= col + 1; c++) {
       if (isValid(r, c) && !(r == row && c == col)) {
-        if (buttons[r][c].hasMine)
-          numMines++;
+        if (buttons[r][c].hasMine) numMines++;
       }
     }
   }
@@ -121,21 +108,19 @@ public class MSButton {
     Interactive.add(this);
   }
   
-  public boolean contains(int mx, int my) {
+  // Guido requires isInside(float, float) to detect clicks on this object.
+  public boolean isInside(float mx, float my) {
     return mx >= x && mx <= x + w && my >= y && my <= y + h;
   }
   
   public void mousePressed() {
-    if (clicked)
-      return;
+    if (clicked) return;
     if (mouseButton == RIGHT) {
       flagged = !flagged;
-      if (!flagged)
-        clicked = false;
+      if (!flagged) clicked = false;
       return;
     }
-    if (flagged)
-      return;
+    if (flagged) return;
     clicked = true;
     if (hasMine) {
       loss();
@@ -150,8 +135,9 @@ public class MSButton {
         for (int c = myCol - 1; c <= myCol + 1; c++) {
           if (isValid(r, c) && !(r == myRow && c == myCol)) {
             MSButton neighbor = buttons[r][c];
-            if (!neighbor.clicked && !neighbor.flagged)
+            if (!neighbor.clicked && !neighbor.flagged) {
               neighbor.mousePressed();
+            }
           }
         }
       }
@@ -184,4 +170,3 @@ public class MSButton {
     return flagged;
   }
 }
- 
